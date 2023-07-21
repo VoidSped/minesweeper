@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import messagebox
 import generator
 
 class MinesweeperGUI:
@@ -7,11 +8,20 @@ class MinesweeperGUI:
         self.rows = rows
         self.columns = columns
         self.bomb_count = bomb_count
-        self.grid = generator.Grid(rows, columns, bomb_count)
 
         self.tiles = [[None for _ in range(columns)] for _ in range(rows)]
+        self.grid = generator.Grid(rows, columns, bomb_count)
+        self.original_state = {}  # Initialize the original state dictionary
 
         self.create_widgets()
+
+    def count_non_bomb_tiles(self):
+        count = 0
+        for row in range(self.rows):
+            for col in range(self.columns):
+                if self.grid.grid_value(row, col) != 'b':
+                    count += 1
+        return count
 
     def create_widgets(self):
         # Create buttons for each tile in the grid
@@ -68,56 +78,78 @@ class MinesweeperGUI:
             if button.cget('state') == 'disabled':
                 return  # Avoid processing revealed tiles
 
+            if value == 'b':
+                # Game over: Reveal all bombs and show "You Lost!" message
+                self.reveal_all_bombs()
+                messagebox.showinfo("Game Over", "You Lost!")
+
             else:
                 button.config(text=str(value), state='disabled', relief=tk.SUNKEN)
                 if value == 0:
                     self.reveal_neighbors_dfs(row, col, set())
 
+                # Check for win condition
+                if self.count_non_bomb_tiles() == 0:
+                    messagebox.showinfo("Congratulations", "You Won!")
+
+
+    def reveal_all_bombs(self):
+        for row in range(self.rows):
+            for col in range(self.columns):
+                value = self.grid.grid_value(row, col)
+                button = self.tiles[row][col]
+                if value == 'b':
+                    button.config(text='B', state='disabled', relief=tk.SUNKEN)
+                elif value == 0:
+                    button.config(text='', state='disabled', relief=tk.SUNKEN)
+                else:
+                    button.config(text=str(value), state='disabled', relief=tk.SUNKEN)
 
     def reveal_neighbors_dfs(self, row, col, visited):
         visited.add((row, col))
+        button = self.tiles[row][col]
+        value = self.grid.grid_value(row, col)
 
-        for dr in [-1, 0, 1]:
-            for dc in [-1, 0, 1]:
-                if dr == 0 and dc == 0:
-                    continue
+        if button.cget('state') != 'disabled':
+            button.config(text=str(value), state='disabled', relief=tk.SUNKEN)
 
-                nr, nc = row + dr, col + dc
-                if (0 <= nr < self.rows and 0 <= nc < self.columns and
-                        (nr, nc) not in visited):
-                    button = self.tiles[nr][nc]
-                    value = self.grid.grid_value(nr, nc)
+        if value == 0:
+            for dr in [-1, 0, 1]:
+                for dc in [-1, 0, 1]:
+                    if dr == 0 and dc == 0:
+                        continue
 
-                    if button.cget('state') != 'disabled':
-                        button.config(text=str(value), state='disabled', relief=tk.SUNKEN)
-
-                    visited.add((nr, nc))
-                    if value == 0:
+                    nr, nc = row + dr, col + dc
+                    if (0 <= nr < self.rows and 0 <= nc < self.columns and
+                            (nr, nc) not in visited):
                         self.reveal_neighbors_dfs(nr, nc, visited)
+        else:
+            visited.add((row, col))
 
-
-
+        # Check for win condition
+        if self.count_non_bomb_tiles() == 0:
+            messagebox.showinfo("Congratulations", "You Won!")
 
     def show_entire_grid(self):
-            # Store the original state of each tile before revealing the grid
-            self.original_state = {}
-            for row in range(self.rows):
-                for col in range(self.columns):
-                    button = self.tiles[row][col]
-                    self.original_state[(row, col)] = {
-                        "text": button.cget('text'),
-                        "state": button.cget('state'),
-                        "relief": button.cget('relief')
-                    }
+        # Store the original state of each tile before revealing the grid
+        self.original_state = {}
+        for row in range(self.rows):
+            for col in range(self.columns):
+                button = self.tiles[row][col]
+                self.original_state[(row, col)] = {
+                    "text": button.cget('text'),
+                    "state": button.cget('state'),
+                    "relief": button.cget('relief')
+                }
 
-                    value = self.grid.grid_value(row, col)
-                    if value == "b":
-                        button.config(text='B', state='disabled', relief=tk.SUNKEN)
+                value = self.grid.grid_value(row, col)
+                if value == "b":
+                    button.config(text='B', state='disabled', relief=tk.SUNKEN)
+                else:
+                    if value > 0:
+                        button.config(text=str(value))
                     else:
-                        if value > 0:
-                            button.config(text=str(value))
-                        else:
-                            button.config(text='', state='disabled', relief=tk.SUNKEN)
+                        button.config(text='', state='disabled', relief=tk.SUNKEN)
 
     def reset_grid(self):
         # Reset the grid to its initial state (with random bombs)
@@ -139,7 +171,7 @@ class MinesweeperGUI:
                     text=original_state["text"],
                     state=original_state["state"],
                     relief=original_state["relief"]
-                    )
+                )
 
 if __name__ == "__main__":
     rows, columns, bomb_count = 8, 8, 10
