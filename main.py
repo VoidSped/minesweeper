@@ -156,7 +156,7 @@ class MinesweeperGUI:
                 value = self.grid.grid_value(row, col)
                 button = self.tiles[row][col]
                 if value == 'b':
-                    button.config(text='B', state='disabled', relief=tk.SUNKEN)
+                    button.config(text='B', fg = 'red', state='disabled', relief=tk.SUNKEN)
                 elif value == 0:
                     button.config(text='', state='disabled', relief=tk.SUNKEN)
                 else:
@@ -204,7 +204,7 @@ class MinesweeperGUI:
 
                     value = self.grid.grid_value(row, col)
                     if value == "b":
-                        button.config(text='B', state='disabled', relief=tk.SUNKEN)
+                        button.config(text='B', fg= 'red', state='disabled', relief=tk.SUNKEN)
                     else:
                         if value > 0:
                             button.config(text=str(value))
@@ -266,12 +266,71 @@ class MinesweeperGUI:
             self.hide_button_clicked = True
             self.show_button_clicked = False
 
+class ModeSelectionGUI:
+    def __init__(self, master):
+        self.master = master
+        self.master.title("Minesweeper - Mode Selection")
+
+        self.create_widgets()
+
+    def create_widgets(self):
+        # Create labels and buttons for mode selection
+        tk.Label(self.master, text="Select Game Mode:", font=("Helvetica", 16, "bold")).pack(pady=10)
+
+        tk.Button(self.master, text="Easy (8x8, 16 Bombs)", font=("Helvetica", 12),
+                  command=lambda: self.start_game(8, 8, 16)).pack(pady=5)
+        tk.Button(self.master, text="Normal (16x16, 96 Bombs)", font=("Helvetica", 12),
+                  command=lambda: self.start_game(16, 16, 96)).pack(pady=5)
+        tk.Button(self.master, text="Hard (32x32, 512 Bombs)", font=("Helvetica", 12),
+                  command=lambda: self.start_game(32, 32, 512)).pack(pady=5)
+        tk.Button(self.master, text="Custom", font=("Helvetica", 12), command=self.show_custom_settings).pack(pady=5)
+
+    def show_custom_settings(self):
+        # Create a new window for custom game settings
+        custom_window = tk.Toplevel(self.master)
+        custom_window.title("Custom Game Settings")
+
+        # Labels and Entry widgets for custom settings
+        tk.Label(custom_window, text="Rows:", font=("Helvetica", 12)).grid(row=0, column=0, padx=5, pady=5)
+        rows_entry = tk.Entry(custom_window, font=("Helvetica", 12))
+        rows_entry.grid(row=0, column=1, padx=5, pady=5)
+
+        tk.Label(custom_window, text="Columns:", font=("Helvetica", 12)).grid(row=1, column=0, padx=5, pady=5)
+        columns_entry = tk.Entry(custom_window, font=("Helvetica", 12))
+        columns_entry.grid(row=1, column=1, padx=5, pady=5)
+
+        tk.Label(custom_window, text="Bombs:", font=("Helvetica", 12)).grid(row=2, column=0, padx=5, pady=5)
+        bombs_entry = tk.Entry(custom_window, font=("Helvetica", 12))
+        bombs_entry.grid(row=2, column=1, padx=5, pady=5)
+
+        # OK button to start the custom game
+        ok_button = tk.Button(custom_window, text="OK", font=("Helvetica", 12),
+                              command=lambda: self.start_custom_game(rows_entry.get(), columns_entry.get(), bombs_entry.get()))
+        ok_button.grid(row=3, column=0, columnspan=2, pady=10)
+
+    def start_custom_game(self, rows, columns, bombs):
+        # Validate custom game settings and start the game if valid
+        try:
+            rows, columns, bombs = int(rows), int(columns), int(bombs)
+            if rows < 1 or columns < 1 or bombs < 1 or bombs >= rows * columns:
+                messagebox.showerror("Invalid Input", "Please enter valid custom game settings.")
+            else:
+                self.start_game(rows, columns, bombs)
+        except ValueError:
+            messagebox.showerror("Invalid Input", "Please enter valid numbers for custom game settings.")
+
+    def start_game(self, rows, columns, bomb_count):
+        # Destroy the mode selection window and start the Minesweeper game
+        self.master.destroy()
+
+        root = tk.Tk()
+        root.title("Minesweeper")
+        root.resizable(False, False)
+
+        minesweeper_gui = MinesweeperGUI(root, rows, columns, bomb_count)
+        root.mainloop()
+
 if __name__ == "__main__":
-    rows, columns, bomb_count = 8, 8, 10
-
     root = tk.Tk()
-    root.title("Minesweeper")
-    root.resizable(False, False)
-
-    minesweeper_gui = MinesweeperGUI(root, rows, columns, bomb_count)
+    mode_selection_gui = ModeSelectionGUI(root)
     root.mainloop()
