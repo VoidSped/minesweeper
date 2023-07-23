@@ -17,7 +17,7 @@ class Grid:
             print(" ".join(row_values))
 
     def generate_grid(self, bomb_count):
-        for i in range(0, 10):
+        for i in range(0, bomb_count):
             while True:
                 x = random.randint(0, self.columns-1)
                 y = random.randint(0, self.rows-1)
