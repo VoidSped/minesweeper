@@ -29,32 +29,6 @@ class MinesweeperGUI:
                 button = self.tiles[row][col]
                 button.bind('<Button-1>', lambda event, r=row, c=col: self.on_tile_click(r, c, event))
 
-        self.hide_button_clicked = False
-        self.show_button_clicked = False
-
-        # Create a Frame to hold the "Show Grid" button
-        show_grid_frame = tk.Frame(self.master)
-        show_grid_frame.grid(row=self.rows, column=0, columnspan=self.columns, pady=10)
-
-        # Create the "Show Grid" button inside the frame
-        show_grid_button = tk.Button(show_grid_frame, text="Show Grid", command=self.show_entire_grid)
-        show_grid_button.pack()
-
-        # Create a Frame to hold the "Reset Grid" and "Hide Grid" buttons
-        control_frame = tk.Frame(self.master)
-        control_frame.grid(row=self.rows + 1, column=0, columnspan=self.columns, pady=10)
-
-        # Create the "Reset Grid" button inside the frame
-        reset_button = tk.Button(control_frame, text="Reset Grid", command=self.reset_grid)
-        reset_button.grid(row=0, column=0, padx=5)
-
-        # Create the "Hide Grid" button inside the frame
-        hide_button = tk.Button(control_frame, text="Hide Grid", command=self.hide_grid)
-        hide_button.grid(row=0, column=1, padx=5)
-
-        self.show_grid_button = show_grid_button
-        self.hide_button = hide_button
-
     def update_timer(self):
         if self.start_time is not None and self.game_state == "ongoing":
             current_time = time.time()
@@ -84,6 +58,10 @@ class MinesweeperGUI:
                 button.bind('<Button-1>', lambda event, r=row, c=col: self.on_tile_click(r, c, event))
                 button.bind('<Button-3>', lambda event, r=row, c=col: self.on_tile_right_click(r, c, event))
 
+
+        self.hide_button_clicked = False
+        self.show_button_clicked = False
+
         # Create a Frame to hold the "Show Grid" button
         show_grid_frame = tk.Frame(self.master)
         show_grid_frame.grid(row=self.rows, column=0, columnspan=self.columns, pady=10)
@@ -103,6 +81,13 @@ class MinesweeperGUI:
         # Create the "Hide Grid" button inside the frame
         hide_button = tk.Button(control_frame, text="Hide Grid", command=self.hide_grid)
         hide_button.grid(row=0, column=1, padx=5)
+
+        # Create the "Change Difficulty" button inside the frame
+        change_difficulty_button = tk.Button(control_frame, text="Change Difficulty", command=self.change_difficulty)
+        change_difficulty_button.grid(row=0, column=2, padx=5)
+
+        self.show_grid_button = show_grid_button
+        self.hide_button = hide_button
 
     def on_tile_right_click(self, row, col, event):
         # Handle right-click event here for flag placement
@@ -266,6 +251,12 @@ class MinesweeperGUI:
             self.hide_button_clicked = True
             self.show_button_clicked = False
 
+    def change_difficulty(self):
+        self.master.destroy()  # Close the current Minesweeper GUI
+        root = tk.Tk()
+        ModeSelectionGUI(root)  # Open the difficulty choice GUI again
+        root.mainloop()
+
 class ModeSelectionGUI:
     def __init__(self, master):
         self.master = master
@@ -277,12 +268,12 @@ class ModeSelectionGUI:
         # Create labels and buttons for mode selection
         tk.Label(self.master, text="Select Game Mode:", font=("Helvetica", 16, "bold")).pack(pady=10)
 
-        tk.Button(self.master, text="Easy (8x8, 16 Bombs)", font=("Helvetica", 12),
-                  command=lambda: self.start_game(8, 8, 16)).pack(pady=5)
-        tk.Button(self.master, text="Normal (16x16, 96 Bombs)", font=("Helvetica", 12),
-                  command=lambda: self.start_game(16, 16, 96)).pack(pady=5)
-        tk.Button(self.master, text="Hard (32x32, 512 Bombs)", font=("Helvetica", 12),
-                  command=lambda: self.start_game(32, 32, 512)).pack(pady=5)
+        tk.Button(self.master, text="Easy (8x8, 10 Bombs)", font=("Helvetica", 12),
+                  command=lambda: self.start_game(8, 8, 10)).pack(pady=5)
+        tk.Button(self.master, text="Normal (16x16, 64 Bombs)", font=("Helvetica", 12),
+                  command=lambda: self.start_game(16, 16, 64)).pack(pady=5)
+        tk.Button(self.master, text="Hard (32x32, 256 Bombs)", font=("Helvetica", 12),
+                  command=lambda: self.start_game(32, 32, 256)).pack(pady=5)
         tk.Button(self.master, text="Custom", font=("Helvetica", 12), command=self.show_custom_settings).pack(pady=5)
 
     def show_custom_settings(self):
